@@ -7,5 +7,6 @@ class TestCalculator(unittest.TestCase):
         # Якщо так - тест пройдено. Якщо ні - Jenkins видасть помилку!
         self.assertEqual(add(2, 3), 9)
 
+
 if __name__ == '__main__':
     unittest.main()
