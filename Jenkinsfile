@@ -1,7 +1,6 @@
 pipeline {
     agent any
 
-    // Тригер для автоматичного запуску від GitHub
     triggers {
         githubPush()
     }
@@ -9,21 +8,28 @@ pipeline {
     stages {
         stage('Підготовка (Checkout)') {
             steps {
-                echo 'Jenkins автоматично завантажив код із GitHub завдяки Jenkinsfile!'
-                // Нам більше не треба писати тут команду git url: '...',
-                // бо Jenkins сам знає, звідки він взяв цей Jenkinsfile!
+                echo 'Завантажуємо свіжий код...'
             }
         }
 
         stage('Тестування (Test)') {
             steps {
                 dir('src') {
-                    echo 'Запускаємо автоматичні тести Python...'
+                    echo 'Запускаємо автоматичні тести...'
                     bat '''
                     set PYTHONPATH=.
                     python -m unittest test_calculator.py
                     '''
                 }
+            }
+        }
+
+        // НОВИЙ ЕТАП: Пакування готового продукту
+        stage('Доставка (Deliver)') {
+            steps {
+                echo 'Тести пройдено! Зберігаємо готову програму як Артефакт...'
+                // Ця команда каже: "Знайди всі файли .py в папці src і збережи їх"
+                archiveArtifacts artifacts: 'src/*.py', fingerprint: true
             }
         }
     }
@@ -36,7 +42,7 @@ pipeline {
                 string(credentialsId: 'TELEGRAM_CHAT_ID', variable: 'CHAT_ID')
             ]) {
                 bat '''
-                curl -s -X POST https://api.telegram.org/bot%TOKEN%/sendMessage -d chat_id=%CHAT_ID% -d text="Zbirka uspishna! Vsi testy projdeno z Jenkinsfile."
+                curl -s -X POST https://api.telegram.org/bot%TOKEN%/sendMessage -d chat_id=%CHAT_ID% -d text="Zbirka uspishna! Artefakty zberesheno."
                 '''
             }
         }
